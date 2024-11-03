@@ -1,0 +1,210 @@
+import { QueryAndAnswer } from "@/constants/interface";
+import React, {
+  createContext,
+  Dispatch,
+  SetStateAction,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { Alert, useColorScheme } from "react-native";
+
+interface TheDonkiProps {
+  displayDropdown: boolean;
+  setDisplayDropdown: Dispatch<SetStateAction<boolean>>;
+  listOfQueryAndAnswers: Array<QueryAndAnswer>;
+  addTolistOfQueryAndAnswers: (object: QueryAndAnswer) => void;
+  updateQuery: (object: QueryAndAnswer) => void;
+  queryAndAnswer: QueryAndAnswer | undefined;
+  setQueryAndAnswer: Dispatch<SetStateAction<QueryAndAnswer | undefined>>;
+  setListOfQueryAndAnswers: Dispatch<SetStateAction<Array<QueryAndAnswer>>>;
+  stopButton: boolean;
+  setStopButton: Dispatch<SetStateAction<boolean>>;
+  stopResponseFunc: () => void;
+  increaseUntruthful: () => void;
+  tapVertices: any;
+  setTapVertices: any;
+  tappedQueryAndAnswer: QueryAndAnswer | undefined;
+  setTappedQueryAndAnswer: Dispatch<SetStateAction<QueryAndAnswer | undefined>>;
+  isAiDropdown: boolean;
+  setIsAiDropdown: Dispatch<SetStateAction<boolean>>;
+  userFile: any | null;
+  setUserFileResponse: Dispatch<SetStateAction<any | null>>;
+}
+
+export const TheDonkiContext = createContext<TheDonkiProps | null>(null);
+function TheDonkiProvider({ children }: any) {
+  const [displayDropdown, setDisplayDropdown] = useState(true);
+  const [userFile, setUserFileResponse] = useState<any | null>(null);
+  const [stopButton, setStopButton] = useState(false);
+  const [queryAndAnswer, setQueryAndAnswer] = useState<QueryAndAnswer>();
+  const [listOfQueryAndAnswers, setListOfQueryAndAnswers] = useState<
+    QueryAndAnswer[]
+  >([]);
+  const [tapVertices, setTapVertices] = useState(null);
+  const [isAiDropdown, setIsAiDropdown] = useState(false);
+  const [tappedQueryAndAnswer, setTappedQueryAndAnswer] =
+    useState<QueryAndAnswer>();
+  const stopResponseRef = useRef(false);
+
+  useEffect(() => {
+    if (stopResponseRef.current) {
+      stopResponseRef.current = false;
+    }
+  }, [stopButton]);
+
+  /**This handles removing items from the list */
+  const updateQuery = (query: QueryAndAnswer) => {
+    setListOfQueryAndAnswers((prevList) =>
+      prevList.filter((element) => element.id != query.id)
+    );
+  };
+
+  /**This gets the response from the server */
+  const getResponse = async (newQuery: QueryAndAnswer) => {
+    setStopButton(true);
+    const url = "https://donki-ai-server.vercel.app/api/v1/ai-config/asked";
+
+    // Prepare form data
+    const formData = new FormData();
+
+    formData.append(
+      "conversation",
+      JSON.stringify([
+        {
+          role: "user",
+          content: newQuery.query,
+        },
+      ])
+    );
+    formData.append("model", "gpt-3.5-turbo");
+
+    if (userFile) {
+      formData.append("pdf", userFile);
+    }
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        body: formData,
+      });
+
+      /** There is no way to stream chunks with react native without the use of a web interface
+       * Hence the use of the response.text() if the response is ok
+       */
+      if (response.ok) {
+        const data = await response.text(); // Get the full response as text
+        return data;
+      } else {
+        return "Unable to fetch data";
+      }
+    } catch (error) {
+      Alert.alert("Error", error?.toString());
+      return "error";
+    }
+  };
+
+  const stopResponseFunc = () => {
+    stopResponseRef.current = true; // Update the ref value
+  };
+
+  const addTolistOfQueryAndAnswers = async (newEntry: QueryAndAnswer) => {
+    if (newEntry.query != null || newEntry.query != undefined) {
+      setListOfQueryAndAnswers((prev) => [...prev, newEntry]);
+      const response = await getResponse(newEntry);
+      setUserFileResponse(null);
+      if (response) {
+        const words = response.split(" ");
+        const messageLength = 1;
+        let displayedText = "";
+        for (let i = 0; i < words.length; i += messageLength) {
+          const chunk = words.slice(
+            i,
+            Math.min(i + messageLength, words.length)
+          );
+          displayedText += chunk.join(" ") + " ";
+          setListOfQueryAndAnswers((prev) =>
+            prev.map((entry) =>
+              entry.id === newEntry.id
+                ? { ...entry, answer: displayedText } // Update the answer field
+                : entry
+            )
+          );
+
+          if (stopResponseRef.current) {
+            setStopButton(false);
+            stopResponseRef.current = false;
+            return; // Exit the loop immediately
+          }
+
+          await new Promise((resolve) => setTimeout(resolve, 10));
+        }
+      }
+      setStopButton(false);
+    }
+  };
+
+  //TODO: Work on this
+  const increaseUntruthful = async () => {
+    const url =
+      "https://donki-ai-server.vercel.app/api/v1/ai-config/increase-untruthful-count";
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      // if (response.ok) {
+      //   // If the response status is 200-299, show a success toast
+      //   Toast.show({
+      //     text1: "Success",
+      //     text2: "Successfully disliked the post.",
+      //     type: "success", // Directly set type
+      //   });
+      //   showToast("Success", "Successfully disliked the post.", false);
+      // } else {
+      //   // If response isn't successful, show an error toast
+      //   showToast("Error", "The post no longer exists.", true);
+      // }
+    } catch (ex) {
+      console.log("Error", "Something went wrong. Please try again.", true);
+    }
+  };
+
+  const memoizedListOfQueryAndAnswers = useMemo(
+    () => listOfQueryAndAnswers,
+    [listOfQueryAndAnswers]
+  );
+  return (
+    <TheDonkiContext.Provider
+      value={{
+        displayDropdown,
+        setDisplayDropdown,
+        setListOfQueryAndAnswers,
+        listOfQueryAndAnswers: memoizedListOfQueryAndAnswers,
+        addTolistOfQueryAndAnswers,
+        queryAndAnswer,
+        updateQuery,
+        setQueryAndAnswer,
+        stopResponseFunc,
+        stopButton,
+        setStopButton,
+        increaseUntruthful,
+        tapVertices,
+        setTapVertices,
+        tappedQueryAndAnswer,
+        setTappedQueryAndAnswer,
+        isAiDropdown,
+        setIsAiDropdown,
+        userFile,
+        setUserFileResponse,
+      }}
+    >
+      {children}
+    </TheDonkiContext.Provider>
+  );
+}
+
+export default TheDonkiProvider;
