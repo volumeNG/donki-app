@@ -11,10 +11,13 @@ import {
 } from "react-native";
 import { Link } from "expo-router";
 import Colors from "@/constants/Colors";
+import { ColorContext } from "@/context/DonkiColorProvider";
 
 function Donate() {
-  const donkiContext = useContext(TheDonkiContext);
-  const colorScheme = donkiContext?.colorScheme ?? "light";
+
+  const colorContext = useContext(ColorContext);
+
+  const colorScheme = colorContext?.colorScheme ?? "light";
   return (
     <SafeAreaView
       style={{

@@ -3,10 +3,12 @@ import { SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Link } from "expo-router";
 import { TheDonkiContext } from "@/context/TheDonkiProvider";
 import Colors from "@/constants/Colors";
+import { ColorContext } from "@/context/DonkiColorProvider";
 
 function About() {
-  const donkiContext = useContext(TheDonkiContext);
-  const colorScheme = donkiContext?.colorScheme ?? "light";
+  const colorContext = useContext(ColorContext);
+
+  const colorScheme = colorContext?.colorScheme ?? "light";
   return (
     <SafeAreaView
       style={{
@@ -23,7 +25,7 @@ function About() {
               color: Colors[colorScheme ?? "light"].text,
               marginBottom: 10,
             },
-          ]}
+          ]} 
         >
           About Us
         </Text>
