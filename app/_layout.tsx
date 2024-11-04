@@ -56,13 +56,14 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-  const colorScheme = useColorScheme();
+  // const colorScheme = useColorScheme();
 
   return (
     <>
       <TheDonkiProvider>
         <ThemeProvider
-          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+          // value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+          value={DefaultTheme}
         >
           <DonkiColorProvider>
             <Stack initialRouteName="index">
