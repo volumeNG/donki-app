@@ -1,19 +1,25 @@
-import { Icon } from "lucide-react-native";
-import React from "react";
+import Colors from "@/constants/Colors";
+import { ColorContext } from "@/context/DonkiColorProvider";
+import { MessageCircleWarningIcon } from "lucide-react-native";
+import React, { useContext } from "react";
 import { View, Text } from "react-native";
 import Animated, { FadeInUp, FadeOutUp } from "react-native-reanimated";
 function Toast() {
+  const colorContext = useContext(ColorContext);
+
   return (
     <Animated.View
       entering={FadeInUp}
       exiting={FadeOutUp}
       style={{
-        top: 70,
-        backgroundColor: "#20639B",
+        top: 50,
+        backgroundColor:
+          Colors[colorContext?.colorScheme ?? "light"].background,
         width: "90%",
         position: "absolute",
+        alignSelf: "center",
         borderRadius: 5,
-        padding: 20,
+        padding: 15,
         flexDirection: "row",
         justifyContent: "flex-start",
         alignItems: "center",
@@ -22,29 +28,23 @@ function Toast() {
         shadowRadius: 2,
         shadowOffset: { width: 0, height: 1 },
         elevation: 2,
+        zIndex: 100000000,
       }}
     >
-      {/* <Icon size={30} color="#F6F4F4" /> */}
+      <MessageCircleWarningIcon
+        size={20}
+        color={Colors[colorContext?.colorScheme ?? "light"].dropdownTextColor}
+      />
       <View>
         <Text
           style={{
-            color: "#F6F4F4",
-            fontWeight: "bold",
-            marginLeft: 10,
-            fontSize: 16,
-          }}
-        >
-          Info
-        </Text>
-        <Text
-          style={{
-            color: "#F6F4F4",
+            color: Colors[colorContext?.colorScheme ?? "light"].text,
             fontWeight: "500",
             marginLeft: 10,
             fontSize: 14,
           }}
         >
-          Check Description for the Source Code
+          We received your feedback. Thank you for helping us improve!
         </Text>
       </View>
     </Animated.View>

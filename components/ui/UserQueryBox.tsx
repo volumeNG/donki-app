@@ -7,6 +7,8 @@ import {
   StyleSheet,
   GestureResponderEvent,
   Dimensions,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import Colors from "@/constants/Colors";
 import EllipsisComponent from "../shared/Ellipsis";
@@ -22,12 +24,58 @@ interface UserQueryProps {
 const screenWidth = Dimensions.get("window").width;
 
 function UserQueryBox({ colorScheme, userRequest }: UserQueryProps) {
+  // const [isEditable, setIsEnableEdit] = useState<boolean>(userRequest);
   const donkiContext = useContext(TheDonkiContext);
   const [newQuery, setNewQuery] = useState<string>(userRequest.query!);
 
-  useEffect(() => {
-    setNewQuery(userRequest.query ?? "");
-  }, [userRequest.query]);
+  // useEffect(() => {
+  //   setNewQuery(userRequest.query ?? "");
+  // }, [userRequest.query]);
+
+  const handleSend = () => {
+    donkiContext?.updateQuery(userRequest);
+    // setIsEnableEdit(false);
+    const newQueryAndAnswer = {
+      ...donkiContext?.queryAndAnswer,
+      id: uuid.v4().toString(),
+      query: newQuery.trim(),
+      answer: "",
+      isEditable: false,
+    };
+    donkiContext?.setQueryAndAnswer(newQueryAndAnswer);
+    donkiContext?.addTolistOfQueryAndAnswers(newQueryAndAnswer);
+  };
+
+  const handleCancel = () => {
+    if (donkiContext && donkiContext.listOfQueryAndAnswers) {
+      const index = donkiContext.listOfQueryAndAnswers.findIndex(
+        (item) => item.id === userRequest.id
+      );
+      if (index !== -1) {
+        const updatedList = [...donkiContext.listOfQueryAndAnswers];
+        updatedList[index].isEditable = false;
+        donkiContext.setListOfQueryAndAnswers(updatedList);
+        donkiContext?.setTapVertices(null);
+        donkiContext.setTappedQueryAndAnswer(undefined);
+      }
+      setNewQuery(userRequest.query!);
+    }
+
+    // if (donkiContext && donkiContext.listOfQueryAndAnswers) {
+    //   const updatedList = donkiContext.listOfQueryAndAnswers.map((item) =>
+    //     item.id === userRequest.id
+    //       ? {
+    //           ...item,
+    //           isEditable: false,
+    //         }
+    //       : item
+    //   );
+    //   donkiContext.setListOfQueryAndAnswers(updatedList);
+    //   donkiContext?.setTapVertices(null);
+    //   donkiContext.setTappedQueryAndAnswer(undefined);
+    // }
+    // setNewQuery(userRequest.query!);
+  };
 
   return (
     <View
@@ -73,79 +121,160 @@ function UserQueryBox({ colorScheme, userRequest }: UserQueryProps) {
         }}
       >
         {userRequest.isEditable ? (
-          <View style={styles.editQuery}>
-            <TextInput
-              multiline={true}
-              value={newQuery}
-              onChangeText={setNewQuery}
-              style={[
-                styles.textBox,
-                { color: Colors[colorScheme ?? "light"].text },
-              ]}
-              selectionColor={Colors[colorScheme ?? "light"].selectionColor}
-              autoFocus={userRequest.isEditable}
-            />
-            <View style={styles.buttons}>
-              <Pressable
-                onPress={() => {
-                  if (donkiContext && donkiContext.listOfQueryAndAnswers) {
-                    const updatedList = donkiContext.listOfQueryAndAnswers.map(
-                      (item) => ({
-                        ...item,
-                        isEditable: false,
-                      })
-                    );
-                    donkiContext.setListOfQueryAndAnswers(updatedList);
-                    donkiContext?.setTapVertices(null);
-                    donkiContext.setTappedQueryAndAnswer(undefined);
-                  }
-                  setNewQuery(userRequest.query!);
-                }}
+          // <View style={styles.editQuery}>
+          //   <TextInput
+          //     multiline={true}
+          //     value={newQuery}
+          //     onChangeText={setNewQuery}
+          //     style={[
+          //       styles.textBox,
+          //       { color: Colors[colorScheme ?? "light"].text },
+          //     ]}
+          //     selectionColor={Colors[colorScheme ?? "light"].selectionColor}
+          //     autoFocus={userRequest.isEditable}
+          //   />
+          //   <View style={styles.buttons}>
+          //     <Pressable
+          //       onPress={() => {
+          //         if (donkiContext && donkiContext.listOfQueryAndAnswers) {
+          //           const updatedList = donkiContext.listOfQueryAndAnswers.map(
+          //             (item) => ({
+          //               ...item,
+          //               isEditable: false,
+          //             })
+          //           );
+          //           donkiContext.setListOfQueryAndAnswers(updatedList);
+          //           donkiContext?.setTapVertices(null);
+          //           donkiContext.setTappedQueryAndAnswer(undefined);
+          //         }
+          //         setNewQuery(userRequest.query!);
+          //       }}
+          //       style={[
+          //         styles.cancelButton,
+          //         {
+          //           backgroundColor: Colors[colorScheme ?? "light"].boxColor,
+          //         },
+          //       ]}
+          //     >
+          //       <Text
+          //         style={[
+          //           styles.textBox,
+          //           { color: Colors[colorScheme ?? "light"].text },
+          //         ]}
+          //       >
+          //         Cancel
+          //       </Text>
+          //     </Pressable>
+          //     <Pressable
+          //       onPress={async () => {
+          //         await donkiContext?.updateQuery(userRequest);
+          //         // setIsEnableEdit(false);
+          //         const newQueryAndAnswer = {
+          //           ...donkiContext?.queryAndAnswer,
+          //           id: uuid.v4().toString(),
+          //           query: newQuery.trim(),
+          //           answer: "",
+          //           isEditable: false,
+          //         };
+          //         await donkiContext?.setQueryAndAnswer(newQueryAndAnswer);
+          //         await donkiContext?.addTolistOfQueryAndAnswers(
+          //           newQueryAndAnswer
+          //         );
+          //       }}
+          //       style={[styles.cancelButton, { backgroundColor: "#1F75FE" }]}
+          //     >
+          //       <Text
+          //         style={[
+          //           styles.textBox,
+          //           { color: "white", fontWeight: "600" },
+          //         ]}
+          //       >
+          //         Send
+          //       </Text>
+          //     </Pressable>
+          //   </View>
+          // </View>
+          <KeyboardAvoidingView
+            // behavior={Platform.OS === "ios" ? "padding" : "height"}
+            behavior="padding"
+            // keyboardVerticalOffset={Platform.OS === "ios" ? 50 : 100}
+            style={{ flex: 1 }}
+          >
+            <View style={styles.editQuery}>
+              <TextInput
+                multiline={true}
+                value={newQuery}
+                onChangeText={setNewQuery}
                 style={[
-                  styles.cancelButton,
-                  {
-                    backgroundColor: Colors[colorScheme ?? "light"].boxColor,
-                  },
+                  styles.textBox,
+                  { color: Colors[colorScheme ?? "light"].text },
                 ]}
-              >
-                <Text
+                selectionColor={Colors[colorScheme ?? "light"].selectionColor}
+                autoFocus={userRequest.isEditable}
+              />
+              <View style={styles.buttons}>
+                <Pressable
+                  // onPress={() => {
+                  //   if (donkiContext && donkiContext.listOfQueryAndAnswers) {
+                  //     const updatedList =
+                  //       donkiContext.listOfQueryAndAnswers.map((item) => ({
+                  //         ...item,
+                  //         isEditable: false,
+                  //       }));
+                  //     donkiContext.setListOfQueryAndAnswers(updatedList);
+                  //     donkiContext?.setTapVertices(null);
+                  //     donkiContext.setTappedQueryAndAnswer(undefined);
+                  //   }
+                  //   setNewQuery(userRequest.query!);
+                  // }}
+                  onPress={handleCancel}
                   style={[
-                    styles.textBox,
-                    { color: Colors[colorScheme ?? "light"].text },
+                    styles.cancelButton,
+                    {
+                      backgroundColor: Colors[colorScheme ?? "light"].boxColor,
+                    },
                   ]}
                 >
-                  Cancel
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={async () => {
-                  await donkiContext?.updateQuery(userRequest);
-                  // setIsEnableEdit(false);
-                  const newQueryAndAnswer = {
-                    ...donkiContext?.queryAndAnswer,
-                    id: uuid.v4().toString(),
-                    query: newQuery.trim(),
-                    answer: "",
-                    isEditable: false,
-                  };
-                  await donkiContext?.setQueryAndAnswer(newQueryAndAnswer);
-                  await donkiContext?.addTolistOfQueryAndAnswers(
-                    newQueryAndAnswer
-                  );
-                }}
-                style={[styles.cancelButton, { backgroundColor: "#1F75FE" }]}
-              >
-                <Text
-                  style={[
-                    styles.textBox,
-                    { color: "white", fontWeight: "600" },
-                  ]}
+                  <Text
+                    style={[
+                      styles.textBox,
+                      { color: Colors[colorScheme ?? "light"].text },
+                    ]}
+                  >
+                    Cancel
+                  </Text>
+                </Pressable>
+                <Pressable
+                  // onPress={async () => {
+                  //   await donkiContext?.updateQuery(userRequest);
+                  //   // setIsEnableEdit(false);
+                  //   const newQueryAndAnswer = {
+                  //     ...donkiContext?.queryAndAnswer,
+                  //     id: uuid.v4().toString(),
+                  //     query: newQuery.trim(),
+                  //     answer: "",
+                  //     isEditable: false,
+                  //   };
+                  //   await donkiContext?.setQueryAndAnswer(newQueryAndAnswer);
+                  //   await donkiContext?.addTolistOfQueryAndAnswers(
+                  //     newQueryAndAnswer
+                  //   );
+                  // }}
+                  onPress={handleSend}
+                  style={[styles.cancelButton, { backgroundColor: "#1F75FE" }]}
                 >
-                  Send
-                </Text>
-              </Pressable>
+                  <Text
+                    style={[
+                      styles.textBox,
+                      { color: "white", fontWeight: "600" },
+                    ]}
+                  >
+                    Send
+                  </Text>
+                </Pressable>
+              </View>
             </View>
-          </View>
+          </KeyboardAvoidingView>
         ) : (
           <View style={styles.queryText}>
             <Text

@@ -24,13 +24,15 @@ import {
   Dimensions,
   TouchableOpacity,
   Easing,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { Switch } from "react-native-paper";
 import OpenAiAnswerBox from "@/components/ui/OpenAiAnswerBox";
 import * as DocumentPicker from "expo-document-picker";
 import UserQueryBox from "@/components/ui/UserQueryBox";
 import Colors from "@/constants/Colors";
-import {  TheDonkiContext } from "@/context/TheDonkiProvider";
+import { TheDonkiContext } from "@/context/TheDonkiProvider";
 import uuid from "react-native-uuid";
 import DropdownList from "@/components/ui/Dropdown";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -43,6 +45,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { ColorContext } from "@/context/DonkiColorProvider";
+import Toast from "@/components/shared/Toast";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -67,7 +70,7 @@ class DisplayQueryAndAnswer extends PureComponent<DisplayQueryAndAnswerProps> {
           // isEditable={false}
           userRequest={item}
         />
-        <OpenAiAnswerBox isLoading={false} item={item} />
+        <OpenAiAnswerBox item={item} />
       </View>
     );
   }
@@ -84,8 +87,6 @@ function HomePage() {
     colorContext!.colorScheme == "dark"
   );
   let listOfQueryAndAnswers = donkiContext?.listOfQueryAndAnswers;
-  const previousLength = useRef(listOfQueryAndAnswers!.length);
-
   useEffect(() => {
     setIsEnabled(colorContext!.colorScheme == "dark");
   }, [colorContext!.colorScheme]);
@@ -94,10 +95,8 @@ function HomePage() {
   const toggleTheme = () => {
     setIsEnabled((previousState) => !previousState);
     if (isEnabled) {
-      // donkiContext!.colorScheme! = "light";
       colorContext?.setColorScheme("light");
     } else {
-      // donkiContext!.colorScheme! = "dark";
       colorContext?.setColorScheme("dark");
     }
   };
@@ -139,13 +138,13 @@ function HomePage() {
     }
   };
 
-  useEffect(() => {
-    if (listOfQueryAndAnswers!.length > previousLength.current) {
-      // Only scroll if new items are added
-      flatList.current?.scrollToEnd();
-    }
-    previousLength.current = listOfQueryAndAnswers!.length;
-  }, [listOfQueryAndAnswers]);
+  // useEffect(() => {
+  //   if (listOfQueryAndAnswers!.length > previousLength.current) {
+  //     // Only scroll if new items are added
+  //     flatList.current?.scrollToEnd();
+  //   }
+  //   previousLength.current = listOfQueryAndAnswers!.length;
+  // }, [listOfQueryAndAnswers]);
 
   const sendQueryToAi = (question: string) => {
     if (question.trim().length > 0) {
@@ -246,7 +245,6 @@ function HomePage() {
         path: "/donate",
       },
     ];
-
     return (
       <View
         style={[
@@ -336,7 +334,27 @@ function HomePage() {
     );
   };
 
+  const getInfoFromBackend = async () => {
+    const url = `${process.env.EXPO_PUBLIC_BASE_URL}/info/1`;
+    const response = await fetch(url);
+    if(response){
+
+    }
+  };
+  useEffect(() => {
+    if (colorContext?.displayToast) {
+      setTimeout(() => {
+        colorContext.setToastDisplay(false);
+      }, 3000);
+    }
+  }, [colorContext?.displayToast]);
+
   return (
+    // <KeyboardAvoidingView
+    //   behavior={Platform.OS === "ios" ? "padding" : "height"}
+    //   // keyboardVerticalOffset={Platform.OS === "ios" ? 50 : 100}
+    //   style={{ flex: 1 }}
+    // >
     <SafeAreaView
       style={[
         {
@@ -355,6 +373,7 @@ function HomePage() {
           },
         ]}
       >
+        {colorContext?.displayToast && <Toast />}
         {displayDropdown && <DonkiDropdown />}
         {displayDropdown && (
           <TouchableOpacity
@@ -436,170 +455,177 @@ function HomePage() {
             // onContentSizeChange={() => {
             //   flatList.current?.scrollToEnd();
             // }}
-            style={{ flex: 2, backgroundColor: "transparent" }}
+            style={{
+              flex: 2,
+              backgroundColor: "transparent",
+              minHeight: donkiContext?.listOfQueryAndAnswers.some(
+                (item) => item.isEditable
+              )
+                ? Math.round(Dimensions.get("window").height - 200)
+                : 100,
+            }}
             renderItem={({ item }) => (
-              <View
-                style={{
-                  display: "flex",
-                  gap: 20,
-                  marginVertical: 10,
-                  overflow: "visible",
-                  backgroundColor: "transparent",
-                }}
-              >
-                <UserQueryBox
-                  colorScheme={colorScheme}
-                  // isEditable={false}
-                  userRequest={item}
-                />
-                <OpenAiAnswerBox isLoading={false} item={item} />
-              </View>
+              <DisplayQueryAndAnswer
+                colorScheme={colorScheme}
+                item={item}
+                key={item.id}
+              />
             )}
+            // keyboardShouldPersistTaps="always"
             initialNumToRender={5} // Number of items to render initially
-            maxToRenderPerBatch={5} // Limits the items rendered per frame
+            // maxToRenderPerBatch={5} // Limits the items rendered per frame
           />
         )}
 
-        <View
-          style={{ gap: 30, display: "flex", backgroundColor: "transparent" }}
-        >
-          {listOfQueryAndAnswers?.length == 0 && (
-            <Animated.Image
-              source={bannerSource}
-              style={[
-                imageStyle,
-                {
-                  objectFit: "contain",
-                  width: 260,
-                  alignContent: "center",
-                  alignSelf: "center",
-                  opacity,
-                  position: "relative",
-                },
-              ]}
-            />
-          )}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          enabled={false}
 
-          <View style={style.inputContainer}>
-            <View
-              style={[
-                style.inputContainerInputBox,
-                {
-                  borderColor: colorScheme == "light" ? "#EDEDF1" : "#363944",
-                  padding: 5,
-                },
-              ]}
-            >
-              <Pressable onPress={() => selectPdfFile()}>
-                <Paperclip
-                  size={24}
-                  color="#1F75FE"
-                />
-              </Pressable>
+          // keyboardVerticalOffset={Platform.OS === "ios" ? 50 : 100}
+          // style={{ flex: 1 }}
+        >
+          <View
+            style={{ gap: 30, display: "flex", backgroundColor: "transparent" }}
+          >
+            {listOfQueryAndAnswers?.length == 0 && (
+              <Animated.Image
+                source={bannerSource}
+                style={[
+                  imageStyle,
+                  {
+                    objectFit: "contain",
+                    width: 260,
+                    alignContent: "center",
+                    alignSelf: "center",
+                    opacity,
+                    position: "relative",
+                  },
+                ]}
+              />
+            )}
+
+            <View style={style.inputContainer}>
               <View
-                style={{
-                  flex: 1,
-                  display: "flex",
-                  flexDirection: "column",
-                  backgroundColor: "transparent",
-                  // paddingVertical: 5,
-                }}
+                style={[
+                  style.inputContainerInputBox,
+                  {
+                    borderColor: colorScheme == "light" ? "#EDEDF1" : "#363944",
+                    padding: 5,
+                  },
+                ]}
               >
-                {donkiContext?.userFile != null && (
-                  <View
-                    style={[
-                      style.pdfDisplay,
-                      {
-                        backgroundColor:
-                          Colors[colorScheme ?? "light"].pdfColor,
-                        maxWidth: "70%",
-                      },
-                    ]}
-                  >
-                    <Text
+                <Pressable onPress={() => selectPdfFile()}>
+                  <Paperclip size={24} color="#1F75FE" />
+                </Pressable>
+                <View
+                  style={{
+                    flex: 1,
+                    display: "flex",
+                    flexDirection: "column",
+                    backgroundColor: "transparent",
+                    // paddingVertical: 5,
+                  }}
+                >
+                  {donkiContext?.userFile != null && (
+                    <View
                       style={[
-                        style.input,
+                        style.pdfDisplay,
                         {
-                          color: Colors[colorScheme ?? "light"].text,
-                          width: "90%",
+                          backgroundColor:
+                            Colors[colorScheme ?? "light"].pdfColor,
+                          maxWidth: "70%",
                         },
                       ]}
                     >
-                      {donkiContext?.userFile!["name"]!}
-                    </Text>
-                    <Pressable
-                      onPress={() => donkiContext.setUserFileResponse(null)}
-                    >
-                      <CircleX
-                        size={20}
-                        color={Colors[colorScheme].dropdownTextColor}
-                      />
-                    </Pressable>
-                  </View>
-                )}
+                      <Text
+                        style={[
+                          style.input,
+                          {
+                            color: Colors[colorScheme ?? "light"].text,
+                            width: "90%",
+                          },
+                        ]}
+                      >
+                        {donkiContext?.userFile!["name"]!}
+                      </Text>
+                      <Pressable
+                        onPress={() => donkiContext.setUserFileResponse(null)}
+                      >
+                        <CircleX
+                          size={20}
+                          color={Colors[colorScheme].dropdownTextColor}
+                        />
+                      </Pressable>
+                    </View>
+                  )}
 
-                <TextInput
-                  value={question}
-                  onChangeText={setQuestion}
-                  style={[
-                    style.input,
-                    { color: Colors[colorScheme ?? "light"].text },
-                  ]}
-                  multiline={true}
-                />
+                  <TextInput
+                    value={question}
+                    onChangeText={setQuestion}
+                    style={[
+                      style.input,
+                      { color: Colors[colorScheme ?? "light"].text },
+                    ]}
+                    multiline={true}
+                  />
+                </View>
               </View>
-            </View>
 
-            <Pressable
-              onPress={() =>
-                donkiContext?.stopButton
-                  ? donkiContext.stopResponseFunc()
-                  : sendQueryToAi(question)
-              }
-            >
-              <Image
-                source={
+              <Pressable
+                onPress={() =>
                   donkiContext?.stopButton
-                    ? stopButtonSource
-                    : require("../assets/images/donki_search_log.png")
+                    ? donkiContext.stopResponseFunc()
+                    : sendQueryToAi(question)
                 }
-                style={style.donkiLogImage}
-              />
-            </Pressable>
-          </View>
-          {listOfQueryAndAnswers?.length == 0 && (
-            <View
-              style={{ backgroundColor: "transparent", alignContent: "center" }}
-            >
-              <Text
-                style={{
-                  color: Colors[colorScheme].info,
-                  alignSelf: "center",
-                  fontSize: 12,
-                }}
               >
-                This platform is supported by voluntary donations.
-              </Text>
-              <Link
-                href="/donate"
+                <Image
+                  source={
+                    donkiContext?.stopButton
+                      ? stopButtonSource
+                      : require("../assets/images/donki_search_log.png")
+                  }
+                  style={style.donkiLogImage}
+                />
+              </Pressable>
+            </View>
+            {listOfQueryAndAnswers?.length == 0 && (
+              <View
                 style={{
-                  alignSelf: "center",
+                  backgroundColor: "transparent",
+                  alignContent: "center",
                 }}
               >
                 <Text
                   style={{
-                    color: "#1F75FE",
-                    fontWeight: "600",
+                    color: Colors[colorScheme].info,
+                    alignSelf: "center",
                     fontSize: 12,
                   }}
                 >
-                  Please support our work.
+                  This platform is supported by voluntary donations.
                 </Text>
-              </Link>
-            </View>
-          )}
-        </View>
+                <Link
+                  href="/donate"
+                  style={{
+                    alignSelf: "center",
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: "#1F75FE",
+                      fontWeight: "600",
+                      fontSize: 12,
+                    }}
+                  >
+                    Please support our work.
+                  </Text>
+                </Link>
+              </View>
+            )}
+          </View>
+        </KeyboardAvoidingView>
 
+        {/* This is the body of the dropdown */}
         {donkiContext?.tapVertices != null && (
           <View
             style={{
@@ -622,7 +648,7 @@ function HomePage() {
             onPress={() => {
               donkiContext?.setTapVertices(null);
               donkiContext.setIsAiDropdown(false);
-              // donkiContext.setTappedQueryAndAnswer(undefined);
+              donkiContext.setTappedQueryAndAnswer(undefined);
             }}
             style={{
               position: "absolute",
@@ -643,11 +669,13 @@ function HomePage() {
             ></View>
           </TouchableOpacity>
         )}
+        {/* End of dropdown */}
 
         {/* This is the flatlist for the bottom questions/promps */}
         {listOfQueryAndAnswers?.length == 0 && <BottomQuestions />}
       </View>
     </SafeAreaView>
+    // </KeyboardAvoidingView>
   );
 }
 
@@ -791,5 +819,5 @@ const styles = StyleSheet.create({
   },
 });
 
-////TODO -   the last item in the array doen'st allow me eidt it, Pop up when the admin makes a change in the backend, info/1, change pop up for display of untruthful, change base color to white
+////TODO -   the last item in the array doen'st allow me eidt it, Pop up when the admin makes a change in the backend, info/1,
 //change the view backgroudnf rothe t

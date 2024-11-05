@@ -8,7 +8,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Alert, useColorScheme } from "react-native";
+import { Alert } from "react-native";
 
 interface TheDonkiProps {
   displayDropdown: boolean;
@@ -64,7 +64,7 @@ function TheDonkiProvider({ children }: any) {
   /**This gets the response from the server */
   const getResponse = async (newQuery: QueryAndAnswer) => {
     setStopButton(true);
-    const url = "https://donki-ai-server.vercel.app/api/v1/ai-config/asked";
+    const url = `${process.env.EXPO_PUBLIC_BASE_URL}/ai-config/asked`;
 
     // Prepare form data
     const formData = new FormData();
@@ -147,7 +147,7 @@ function TheDonkiProvider({ children }: any) {
   //TODO: Work on this
   const increaseUntruthful = async () => {
     const url =
-      "https://donki-ai-server.vercel.app/api/v1/ai-config/increase-untruthful-count";
+      `${process.env.EXPO_PUBLIC_BASE_URL}/ai-config/increase-untruthful-count`;
     try {
       const response = await fetch(url, {
         method: "POST",
@@ -155,19 +155,6 @@ function TheDonkiProvider({ children }: any) {
           "Content-Type": "application/json",
         },
       });
-
-      // if (response.ok) {
-      //   // If the response status is 200-299, show a success toast
-      //   Toast.show({
-      //     text1: "Success",
-      //     text2: "Successfully disliked the post.",
-      //     type: "success", // Directly set type
-      //   });
-      //   showToast("Success", "Successfully disliked the post.", false);
-      // } else {
-      //   // If response isn't successful, show an error toast
-      //   showToast("Error", "The post no longer exists.", true);
-      // }
     } catch (ex) {
       console.log("Error", "Something went wrong. Please try again.", true);
     }
@@ -208,3 +195,17 @@ function TheDonkiProvider({ children }: any) {
 }
 
 export default TheDonkiProvider;
+
+
+// {
+//     "statusCode": 200,
+//     "success": true,
+//     "message": "Info retrieved  successfully!",
+//     "data": {
+//         "id": "1",
+//         "status": "warning",
+//         "description": "There will be an update on the 4th of November by 12:00 WAT. ",
+//         "createdAt": "2024-11-03T18:23:45.572Z",
+//         "updatedAt": "2024-11-03T18:23:45.572Z"
+//     }
+// }

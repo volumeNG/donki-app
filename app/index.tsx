@@ -6,17 +6,13 @@ import { router } from "expo-router";
 import Colors from "@/constants/Colors";
 
 function SplashScreen() {
-
-  // const colorScheme = useColorScheme();
   const animation = useRef<LottieView>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       router.replace("/homepage");
-    }, 7000); // 7 seconds
-
-    console.log(process.env.BASE_URL)
-    return () => clearTimeout(timer); // Cleanup the timer on component unmount
+    }, 7000);
+    return () => clearTimeout(timer); 
   }, []);
 
   return (
@@ -34,7 +30,6 @@ function SplashScreen() {
           height: 500,
           backgroundColor: "transparent",
         }}
-        // Find more Lottie files at https://lottiefiles.com/featured
         source={require("../assets/lottie/data1.json")}
       />
     </View>

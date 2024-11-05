@@ -27,6 +27,9 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.org.thedonki",
+      "windowSoftInputMode":"adjustPan",
+    "softwareKeyboardLayoutMode" : "resize",
+
        "permissions": [
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE"

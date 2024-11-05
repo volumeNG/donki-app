@@ -14,6 +14,7 @@ import { Pressable, StyleSheet, Text } from "react-native";
 import uuid from "react-native-uuid";
 import * as Speech from "expo-speech";
 import { QueryAndAnswer } from "@/constants/interface";
+import { ColorContext } from "@/context/DonkiColorProvider";
 
 type TDropdownMenu = {
   colorScheme: "light" | "dark";
@@ -32,6 +33,8 @@ function DropdownList({
   isAiResponse = false,
 }: TDropdownMenu) {
   const donkiContext = useContext(TheDonkiContext);
+  const colorContext = useContext(ColorContext);
+
   const closeDropdownFunction = () => {
     donkiContext?.setTapVertices(null);
     donkiContext?.setIsAiDropdown(false);
@@ -59,12 +62,11 @@ function DropdownList({
         if (donkiContext && donkiContext.listOfQueryAndAnswers) {
           const updatedList = donkiContext.listOfQueryAndAnswers.map((item) =>
             item.id === donkiContext.tappedQueryAndAnswer?.id
-              ? { ...item, isEditable: true } // Update the `answer` or any other property as needed
-              : { ...item, isEditable: false }
+              ? { ...item, isEditable: true }
+              : item
           );
           donkiContext.setListOfQueryAndAnswers(updatedList);
           donkiContext?.setTapVertices(null);
-          console.log(donkiContext?.tappedQueryAndAnswer);
           donkiContext.setTappedQueryAndAnswer(undefined);
         }
       },
@@ -77,19 +79,9 @@ function DropdownList({
       icon: (
         <RefreshCcw size={20} color={Colors[colorScheme].dropdownTextColor} />
       ),
-      onClick: async () => {
-        // const findPrevious = conversation[index - 1];
-        // dispatch(deleteConversationMessages([index, index - 1]));
-        // dispatch(
-        //   addConversationMessage({
-        //     content: findPrevious.content,
-        //     role: "user",
-        //   })
-        // );
-        // handleSearched({ query: findPrevious.content });
-        // performs the query again
+      onClick: () => {
         closeDropdownFunction();
-        await donkiContext?.updateQuery(donkiContext!.tappedQueryAndAnswer!);
+        donkiContext?.updateQuery(donkiContext!.tappedQueryAndAnswer!);
 
         const newQueryAndAnswer = {
           ...donkiContext?.queryAndAnswer,
@@ -101,8 +93,8 @@ function DropdownList({
 
         // setIsEnableEdit(false);
 
-        await donkiContext?.setQueryAndAnswer(newQueryAndAnswer);
-        await donkiContext?.addTolistOfQueryAndAnswers(newQueryAndAnswer);
+        donkiContext?.setQueryAndAnswer(newQueryAndAnswer);
+        donkiContext?.addTolistOfQueryAndAnswers(newQueryAndAnswer);
       },
     },
     {
@@ -118,10 +110,11 @@ function DropdownList({
       icon: (
         <ThumbsDown size={20} color={Colors[colorScheme].dropdownTextColor} />
       ),
-      // onClick: handleSendUntruthful,
       onClick: () => {
-        // readAloud(message);
+
+
         donkiContext?.increaseUntruthful();
+        colorContext?.setToastDisplay(true);
         closeDropdownFunction();
       },
     },
@@ -132,8 +125,6 @@ function DropdownList({
         Speech.stop();
         Speech.speak(donkiContext!.tappedQueryAndAnswer?.answer!);
         closeDropdownFunction();
-
-        // readAloud(message);
       },
     },
   ];
@@ -150,12 +141,6 @@ function DropdownList({
         },
       ]}
     >
-      {/* <View
-        style={[
-          isAiResponse ? styles.bottomTip : styles.topTip,
-          { backgroundColor: Colors[colorScheme].dropdownBG },
-        ]}
-      ></View> */}
       <View style={{ overflow: "hidden" }}>
         {listItem.map((element, index) => {
           return (

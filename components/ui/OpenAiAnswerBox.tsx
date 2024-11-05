@@ -25,13 +25,13 @@ import { ColorContext } from "@/context/DonkiColorProvider";
 
 interface OpenAiAnswerBoxProps {
   // message: string;
-  isLoading: boolean;
+  // isLoading: boolean;
   item: QueryAndAnswer;
 }
 
 const screenHeight = Dimensions.get("window").height;
 
-function OpenAiAnswerBox({ isLoading, item }: OpenAiAnswerBoxProps) {
+function OpenAiAnswerBox({  item }: OpenAiAnswerBoxProps) {
   //Start of animation section
   const tintColor = useSharedValue("#1F75FE");
 
