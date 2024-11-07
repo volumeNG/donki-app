@@ -46,6 +46,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { ColorContext } from "@/context/DonkiColorProvider";
 import Toast from "@/components/shared/Toast";
+import MaintainerUpdate from "@/components/shared/MaintainerUpdate";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -334,13 +335,6 @@ function HomePage() {
     );
   };
 
-  const getInfoFromBackend = async () => {
-    const url = `${process.env.EXPO_PUBLIC_BASE_URL}/info/1`;
-    const response = await fetch(url);
-    if(response){
-
-    }
-  };
   useEffect(() => {
     if (colorContext?.displayToast) {
       setTimeout(() => {
@@ -415,6 +409,8 @@ function HomePage() {
               />
             </Pressable>
           </View>
+          <MaintainerUpdate />
+
           <View style={{ backgroundColor: "transparent" }}>
             <Pressable
               onPress={() => {
@@ -693,7 +689,9 @@ export const style = StyleSheet.create({
     display: "flex",
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems:"center",
     overflow: "visible",
+    gap: 10,
     backgroundColor: "transparent",
   },
 
