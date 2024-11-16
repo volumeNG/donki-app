@@ -23,9 +23,9 @@ import {
   Keyboard,
   Dimensions,
   TouchableOpacity,
-  Easing,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from "react-native";
 import { Switch } from "react-native-paper";
 import OpenAiAnswerBox from "@/components/ui/OpenAiAnswerBox";
@@ -343,6 +343,15 @@ function HomePage() {
     }
   }, [colorContext?.displayToast]);
 
+
+  const onVerify = (token: any) => {
+    console.log("success!", token);
+  };
+
+  const onExpire = () => {
+    console.warn("expired!");
+  };
+
   return (
     // <KeyboardAvoidingView
     //   behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -367,6 +376,15 @@ function HomePage() {
           },
         ]}
       >
+        {/* <Recaptcha
+          ref={recaptcha}
+          siteKey={process.env.EXPO_PUBLIC_CAPTCHA_SITE_KEY!}
+          baseUrl="https://www.thedonki.org/"
+          onVerify={onVerify}
+          onExpire={onExpire}
+          size="invisible"
+          // onLoad={() => Alert.alert("onLoad event")}
+        /> */}
         {colorContext?.displayToast && <Toast />}
         {displayDropdown && <DonkiDropdown />}
         {displayDropdown && (
@@ -563,6 +581,7 @@ function HomePage() {
                       { color: Colors[colorScheme ?? "light"].text },
                     ]}
                     multiline={true}
+                    maxLength={300}
                   />
                 </View>
               </View>
@@ -689,7 +708,7 @@ export const style = StyleSheet.create({
     display: "flex",
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems:"center",
+    alignItems: "center",
     overflow: "visible",
     gap: 10,
     backgroundColor: "transparent",
@@ -817,5 +836,4 @@ const styles = StyleSheet.create({
   },
 });
 
-////TODO -   the last item in the array doen'st allow me eidt it, Pop up when the admin makes a change in the backend, info/1,
-//change the view backgroudnf rothe t
+////TODO -  change app icon

@@ -53,7 +53,6 @@ function MaintainerUpdate() {
     <View
       style={{
         backgroundColor: "transparent",
-        // alignSelf: "center",
         padding: 10,
         flex: 1,
         borderColor: borderColors[maintainerData?.status!] ?? "transparent",
@@ -68,7 +67,6 @@ function MaintainerUpdate() {
       {maintainerData?.status && maintainerIcon[maintainerData?.status!]}
       <Text
         style={{
-          // textAlign: "center",
           color: Colors[colorContext?.colorScheme ?? "light"].text,
         }}
       >

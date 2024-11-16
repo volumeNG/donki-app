@@ -64,7 +64,7 @@ function TheDonkiProvider({ children }: any) {
   /**This gets the response from the server */
   const getResponse = async (newQuery: QueryAndAnswer) => {
     setStopButton(true);
-    const url = `${process.env.EXPO_PUBLIC_BASE_URL}/ai-config/asked`;
+    const url = `${process.env.EXPO_PUBLIC_BASE_URL}/ai-config/mobile/asked`;
 
     // Prepare form data
     const formData = new FormData();
@@ -80,7 +80,7 @@ function TheDonkiProvider({ children }: any) {
     );
     formData.append("model", "gpt-3.5-turbo");
 
-    if (userFile) {
+    if (userFile != null) {
       formData.append("pdf", userFile);
     }
     try {
@@ -92,6 +92,7 @@ function TheDonkiProvider({ children }: any) {
       /** There is no way to stream chunks with react native without the use of a web interface
        * Hence the use of the response.text() if the response is ok
        */
+       console.log(response);
       if (response.ok) {
         const data = await response.text(); // Get the full response as text
         return data;
@@ -146,8 +147,7 @@ function TheDonkiProvider({ children }: any) {
 
   //TODO: Work on this
   const increaseUntruthful = async () => {
-    const url =
-      `${process.env.EXPO_PUBLIC_BASE_URL}/ai-config/increase-untruthful-count`;
+    const url = `${process.env.EXPO_PUBLIC_BASE_URL}/ai-config/increase-untruthful-count`;
     try {
       const response = await fetch(url, {
         method: "POST",
@@ -195,7 +195,6 @@ function TheDonkiProvider({ children }: any) {
 }
 
 export default TheDonkiProvider;
-
 
 // {
 //     "statusCode": 200,
