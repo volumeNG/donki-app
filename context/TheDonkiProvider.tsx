@@ -91,8 +91,7 @@ function TheDonkiProvider({ children }: any) {
 
       /** There is no way to stream chunks with react native without the use of a web interface
        * Hence the use of the response.text() if the response is ok
-       */
-       console.log(response);
+       */ 
       if (response.ok) {
         const data = await response.text(); // Get the full response as text
         return data;
